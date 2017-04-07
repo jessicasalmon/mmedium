@@ -1,7 +1,20 @@
 language: node_js
 
 node_js:
-- '7'
+  - '6.9.5'
+
+env:
+  - DATABASE_URL=postgres://postgres@localhost/test
+
+services:
+  - postgresql
+
+before_script:
+  - psql -c 'create database test;' -U postgres
+  - node ./replay.js -d postgres://postgres@localhost/test
+
+script:
+  -  "npm run coverage"
 
 env:
   - CXX=g++-4.8
@@ -15,16 +28,5 @@ addons:
     - g++-4.8
   postgres: "9.4"
 
-script:
-  npm run coverage
-
-before_install:
-  - pip install --user codecov
-
 after_success:
-  - codecov --file coverage/lcov.info --disable search
-
-notifications:
-  email:
-    on_success: never
-    on_failure: never
+  - ./node_modules/.bin/codecov -e TRAVIS_NODE_VERSION -f coverage/coverage.json
